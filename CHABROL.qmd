@@ -166,4 +166,69 @@ nb_grade_story |> group_by(group) |> ggplot(aes(y= group,
 ```
 
 
+## 4 Grade analysis
+
+### Question 12
+Create a data frame that gives for each student their id, their group and the average of grades
+they obtained in each course. Using an adapted pivoting method, create a new data frame
+with one row per student and 12 columns: one for the id, one for the group and one per course.
+Include in the quarto rendering a small extract of the data frame with the id and group columns
+and with two of the course columns. You should obtain something like this:
+id group Animal Lore and Totemism Astronomy and Celestial Navigation
+864 9 9.71 10.50
+724 19 12.39 11.00
+4 19 12.16 11.17
+610 6 14.53 11.50
+477 5 12.56 13.33
+
+```{r}
+ dataset |> 
+  group_by(id, group,course) |> 
+  summarise( av_grade = mean(grade)) 
+
+```
+
+### Question 13
+Show the average grades in Shamanism and Spirit Communication as a function of the average
+grades in Hunting and Gathering Skills. Make sure to maximise the readability of the proposed
+representation.
+
+```{r}
+
+```
+
+### Question 14
+The cor() function computes the correlation coefficient between two vectors. It can be used as
+a summary function in dplyr. Using it, compute the correlation between the average grades in
+Animal Lore and Totemism and the average grades in Shamanism and Spirit Communication
+group by group.
+```{r}
+av_grade <- dataset |> 
+  group_by(group,course) |> 
+  filter(course == "Animal Lore and Totemism" | course == "Shamanism and Spirit Communication") |>
+  summarise( av_grade = mean(grade)) 
+v1 <- as.vector(dataset |> filter(course == "Animal Lore and Totemism") |> summarise(v1 = av_grade))
+v2 <- as.vector( dataset |> filter(course == "Shamanism and Spirit Communication") |> summarise(v2 = av_grade))
+summarise(cor_course = cor(v1,v2)) 
+```
+
+### Question 15
+Display the average grades in Animal Lore and Totemism as a function the average grades in
+Shamanism and Spirit Communication for the students of the group in which those grades are
+the most correlated (positively or negatively).
+```{r}
+dataset |> group_by()
+```
+
+
+### Question 16
+Let us assume that the final grade of a student is the average of the averages of their grades
+for each course. Create a data frame with three columns, id, group and final grade based on
+this definition for the last column. Sort the data frame in decrease order of final grade and
+include in the quarto rendering its first five rows.
+
+```{r}
+new_dataset <- dataset |>
+  group_by(id, course) |> summarize(final_grade = mean(grade))
+```
 
