@@ -9,6 +9,7 @@ editor: visual
 ### Question 1
 
 ```{r}
+#| echo: false
 library(tidyr)
 library(vroom)
 library(ggplot2)
@@ -18,6 +19,7 @@ library(knitr)
 ```
 
 ```{r}
+#| echo: false
 #loading the dataset using here
 dataset <- vroom(here("grades (1).csv"))
 ```
@@ -29,6 +31,7 @@ dataset <- vroom(here("grades (1).csv"))
 Give the number of grades in the data set directly in the text of your quarto file, in a sentence of the form “The data set contains xxx grades.” where xxx is replaced by the number of grades. This must be computed from the data set.
 
 ```{r}
+#| echo: false
 nbofgrade <- NROW(dataset)  
 sentence_nbofgrade <- paste("The data set contains" , nbofgrade, "grades")
 print(sentence_nbofgrade)
@@ -39,6 +42,7 @@ print(sentence_nbofgrade)
 The dplyr function distinct() can be used to keep only distinct (!) values in a data frame, according to the specified variables. For instance if the data frame df has a variable foo, then df \|\> distinct(foo) gives a new data frame with only the column foo and such that each value of foo appears only once. This applies to multiple variables in a similar way. Use distinct() compute the number of students on the data set and report the value directly in the text as in the previous question.
 
 ```{r}
+#| echo: false
 nb_of_students <- lengths(dataset |> distinct(id))
 sentence_nbofstudents <- paste("The data set contains" , nb_of_students, "students")
 print(sentence_nbofstudents)
@@ -49,6 +53,7 @@ print(sentence_nbofstudents)
 Create a students data frame that contains one row per student and two variables, id and group that gives the assignment of each student to their group. Make sure that each student appears on only once in the data frame. Include a short extract of the data frame in the quarto rendering.
 
 ```{r}
+#| echo: false
 students_df <- dataset |> distinct(id, .keep_all = TRUE) |> select(id, group)
 #lengths is 922 so each students appears 1 time
 #rendering : 
@@ -61,3 +66,104 @@ students_df |>
 ### Question 5
 
 Use a graphical representation to display the number of students per group
+```{r}
+nb_pergroup <- students_df |> 
+  group_by(group) |>
+  summarize(NN = n()) 
+nb_pergroup |> ggplot(aes(x= group,
+                          y=NN)) + 
+  geom_col(show.legend =  FALSE, )
+```
+
+### Question 6
+
+Compute the average of all the grades in Martial Arts and Self-Defense in each group and display
+graphically this average as a function of the group. It is recommend to use geom_col() for this
+task (read the documentation!).
+```{r}
+MMA_grade_average <- dataset |> 
+  group_by(group) |> 
+  filter(course == "Martial Arts and Self-Defense") |> 
+  summarize(average = mean(grade))
+MMA_grade_average |> ggplot(aes(x= group,
+                          y=average)) + 
+  geom_col(show.legend =  FALSE )
+```
+
+
+
+### Question 7
+Compare graphically the distribution of the grades of the 3 modules.
+```{r}
+
+distrib_mod <- dataset |> 
+  mutate(factor_mod = factor(module, ordered = TRUE)) |>
+  select(factor_mod, grade) 
+  
+  
+distrib_mod |> ggplot(aes(x= grade,
+                          fill= factor_mod,
+                          color = factor_mod)) + 
+  geom_bar() 
+  
+
+```
+## 3 Attendance analysis
+
+### Question 8
+Compute the number of grades per student and include in your quarto rendering an extract of
+the resulting data frame. Make sure to keep in the data frame the id of the students but also
+their group. Include in the text a markdown table with the minimum, maximum, average and
+median number of grades per student.
+```{r}
+dataset |> summarize(anyNA(grade))
+q8 <- dataset |> group_by(id) |> 
+  summarize(nb_grade_perstudent = n(), ming = min(nb_grade_perstudent), maxg = max(nb_grade_perstudent), meang = mean(nb_grade_perstudent), mediang = median(nb_grade_perstudent))
+q8 |>
+ slice_head(n = 5) |>
+  kable()
+
+```
+
+
+### Question 9
+Create a data frame that gives for each student their id, their group and the number of grades
+they obtained in Storytelling and Oral Tradition and include in the quarto rendering a small
+extract of the result.
+
+```{r}
+nb_grade_story <- dataset |>
+  filter(course == "Storytelling and Oral Tradition") |>
+  select(id, group, course) |> 
+  group_by(group, id) |>
+  summarize(nb_gr = n()) 
+
+nb_grade_story |>
+  slice_head(n = 2) |>
+  kable()
+  
+  
+```
+
+### Question 10
+Compute from the previous data frame the distribution of the number of grades, that is for each
+number of grades (e.g. 10) the number of students who have exactly this number of grades in
+Storytelling and Oral Tradition. Represent graphically the results.
+```{r}
+nb_grade_story |> ggplot(aes(x= nb_gr,
+                          fill = group)) + 
+  geom_bar(show.legend =  TRUE )
+```
+
+
+### Question 11
+Using a graphical representation to study whether the number of grades per student in Storytelling and Oral Tradition depends on the group.
+
+```{r}
+nb_grade_story |> group_by(group) |> ggplot(aes(y= group,
+ fill= factor(nb_gr))) +
+ geom_bar(position= "fill")
+```
+
+
+
