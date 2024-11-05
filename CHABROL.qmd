@@ -4,7 +4,60 @@ format: html
 editor: visual
 ---
 
-##Introduction 
+##Introduction
 
 ### Question 1
 
+```{r}
+library(tidyr)
+library(vroom)
+library(ggplot2)
+library(dplyr)
+library(here)
+library(knitr)
+```
+
+```{r}
+#loading the dataset using here
+dataset <- vroom(here("grades (1).csv"))
+```
+
+## Simple analysis
+
+### Question 2
+
+Give the number of grades in the data set directly in the text of your quarto file, in a sentence of the form “The data set contains xxx grades.” where xxx is replaced by the number of grades. This must be computed from the data set.
+
+```{r}
+nbofgrade <- NROW(dataset)  
+sentence_nbofgrade <- paste("The data set contains" , nbofgrade, "grades")
+print(sentence_nbofgrade)
+```
+
+### Question 3
+
+The dplyr function distinct() can be used to keep only distinct (!) values in a data frame, according to the specified variables. For instance if the data frame df has a variable foo, then df \|\> distinct(foo) gives a new data frame with only the column foo and such that each value of foo appears only once. This applies to multiple variables in a similar way. Use distinct() compute the number of students on the data set and report the value directly in the text as in the previous question.
+
+```{r}
+nb_of_students <- lengths(dataset |> distinct(id))
+sentence_nbofstudents <- paste("The data set contains" , nb_of_students, "students")
+print(sentence_nbofstudents)
+```
+
+### Question 4
+
+Create a students data frame that contains one row per student and two variables, id and group that gives the assignment of each student to their group. Make sure that each student appears on only once in the data frame. Include a short extract of the data frame in the quarto rendering.
+
+```{r}
+students_df <- dataset |> distinct(id, .keep_all = TRUE) |> select(id, group)
+#lengths is 922 so each students appears 1 time
+#rendering : 
+students_df |> 
+  slice_head(n = 5) |>
+  kable()
+   
+```
+
+### Question 5
+
+Use a graphical representation to display the number of students per group
